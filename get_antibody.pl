@@ -32,6 +32,7 @@ print $cgi->header();
 ## Directory <Data> contains all the sub-directories for all the complexes
 # numbered according to diffrent numbering schemes 
 my $dir = "/acrm/www/html/abs/abdb/Data";
+my $logDir = "/acrm/www/html/abs/abdb/Data/Martin_logs";
 my $headerFile = "header.dat";
 my $headerProFile = "headerProcessed2.dat";
 my $antigenChainsFile = "AntigenChains.dat";
@@ -92,7 +93,7 @@ if ( ($pdb_id) and ($nameAg eq "" ) and ($speciesAg eq "") )
 	
 	if (!$clusNum)                                                         
 	{                                                                         
-	    open(my $KABAT_FAILED,'<', "$dir/Kabat_Failed.list");
+	    open(my $KABAT_FAILED,'<', "$logDir/Kabat_Failed.list");
 	    my @kabat_error = <$KABAT_FAILED>;
 	    
 	    if (grep (/$pdb_id/, @kabat_error) )
@@ -292,17 +293,17 @@ if ( ($nameAg) and ($speciesAg eq "") and ($pdb_id eq "") )
     else 
     {
 	print_html_header();
-	my @result = `grep -E MOLECULE $dir/$headerFile | grep -E "$nameAg"`;
+	my @result = `grep -E MOLECULE $logDir/$headerFile | grep -E "$nameAg"`;
         my @AgMatches;
         foreach  my $org (@result) {
             my $PDB = substr ($org, 0, 4);
-            my @AgChains = split (":",`grep $PDB $dir/$antigenChainsFile`);
+            my @AgChains = split (":",`grep $PDB $logDir/$antigenChainsFile`);
             my @chains = split (/\,|""/,$AgChains[1] );
                            
             foreach my $chain ( @chains) {
                 chomp $chain;
                 my $matchedAg =
-                    `grep "^$PDB : MOLECULE : $chain :.*$nameAg" $dir/$headerFile`;
+                    `grep "^$PDB : MOLECULE : $chain :.*$nameAg" $logDir/$headerFile`;
             push (@AgMatches, $matchedAg);    
             }
     
@@ -350,17 +351,17 @@ if ( ($nameAb) and ($speciesAg eq "") and ($pdb_id eq "") )
     else 
     {
 	print_html_header();
-	my @result = `grep -E MOLECULE $dir/$headerFile | grep -E "$nameAb"`;
+	my @result = `grep -E MOLECULE $logDir/$headerFile | grep -E "$nameAb"`;
         my @AbMatches;
         foreach  my $org (@result) {
             my $PDB = substr ($org, 0, 4);
-            my @AbChains = split (":",`grep $PDB $dir/$antibodyChainsFile`);
+            my @AbChains = split (":",`grep $PDB $logDir/$antibodyChainsFile`);
             my @chains = split (/\,|""/,$AbChains[1] );
                            
             foreach my $chain ( @chains) {
                 chomp $chain;
                 my $matchedAb =
-                    `grep "^$PDB : MOLECULE : $chain :.*$nameAb" $dir/$headerFile`;
+                    `grep "^$PDB : MOLECULE : $chain :.*$nameAb" $logDir/$headerFile`;
             push (@AbMatches, $matchedAb);    
             }
     
@@ -438,24 +439,6 @@ if ( ($speciesAg) and ($nameAg eq "") and ($pdb_id eq "") )
     $pdb_id = 0;    
     print_html_header();       
     
-#    my @resultS = `grep SPECIES $dir/$headerFile | grep "$speciesAg"`;
- #   my @AgMatches;
-  #  foreach  my $org (@resultS) {
-   #     my $PDB = substr ($org, 0, 4);
-    #           
-     #   my @AgChains = split (":",`grep $PDB $dir/$antigenChainsFile`);
-      #  my @chains = split (/\,|""/,$AgChains[1] );
-       #         
-        #foreach my $chain ( @chains) {
-         #   chomp $chain;
-          #  my $matchedAg =
-           #     `grep "^$PDB : SPECIES  : $chain : $speciesAg" $dir/$headerFile`;
-            #push (@AgMatches, $matchedAg);
-        #}
- 
-    #}
-
-    #my @PDBcodesS = uniq (map {substr ($_, 0, 4)} @AgMatches);
     my @PDBcodesS = getSpecies($speciesAg, $antigenChainsFile);
     
     my $PDBnumS;
@@ -487,23 +470,6 @@ if ( ($speciesAb) and ($nameAg eq "") and ($pdb_id eq "") )
     $pdb_id = 0;    
     print_html_header();       
     
-    #my @resultS = `grep SPECIES $dir/$headerFile | grep "$speciesAb"`;
-    #my @AbMatches;
-    #foreach  my $org (@resultS) {
-     #   my $PDB = substr ($org, 0, 4);
-               
-      #  my @AbChains = split (":",`grep $PDB $dir/$antibodyChainsFile`);
-      #  my @chains = split (/\,|""/,$AbChains[1] );
-                
-       # foreach my $chain ( @chains) {
-        #    chomp $chain;
-         #   my $matchedAb =
-          #      `grep "^$PDB : SPECIES  : $chain : $speciesAb" $dir/$headerFile`;
-           # push (@AbMatches, $matchedAb);
-        #}
- 
-    #}
-    #my @PDBcodesS = uniq (map {substr ($_, 0, 4)} @AbMatches);
     my @PDBcodesS = getSpecies ($speciesAb, $antibodyChainsFile);
     
     my $PDBnumS;
@@ -546,19 +512,19 @@ if ( ( ($speciesAg) or ($speciesAb)) and ( ($nameAg) or ($nameAb) ) and ($pdb_id
            my @result;
            if ($nameAg) {
                if ( $speciesAg) {
-                   @result = `grep -E "$nameAg" $dir/$headerProFile | grep -E "$speciesAg"`;
+                   @result = `grep -E "$nameAg" $logDir/$headerProFile | grep -E "$speciesAg"`;
                }
                else {
-                   @result = `grep -E "$nameAg" $dir/$headerProFile | grep -E "$speciesAb"`;
+                   @result = `grep -E "$nameAg" $logDir/$headerProFile | grep -E "$speciesAb"`;
                }
                
            }
            elsif ($nameAb) {
                if ( $speciesAg) {
-                   @result = `grep -E "$nameAb" $dir/$headerProFile | grep -E "$speciesAg"`;
+                   @result = `grep -E "$nameAb" $logDir/$headerProFile | grep -E "$speciesAg"`;
                }
                else {
-                   @result = `grep -E "$nameAb" $dir/$headerProFile | grep -E "$speciesAb"`;
+                   @result = `grep -E "$nameAb" $logDir/$headerProFile | grep -E "$speciesAb"`;
                }
                
            } 
@@ -607,19 +573,19 @@ sub getSpecies
     {
         my ($species, $chainsFile) = @_;
         
-        my @resultS = `grep SPECIES $dir/$headerFile | grep "$species"`;
+        my @resultS = `grep SPECIES $logDir/$headerFile | grep "$species"`;
         my @Matches;
         
         foreach  my $org (@resultS) {
             my $PDB = substr ($org, 0, 4);
             
-            my @AbOrAgChains = split (":",`grep $PDB $dir/$chainsFile`);
+            my @AbOrAgChains = split (":",`grep $PDB $logDir/$chainsFile`);
             my @chains = split (/\,|""/,$AbOrAgChains[1] );
                 
             foreach my $chain ( @chains) {
                 chomp $chain;
                 my $matchedAbOrAg =
-                    `grep "^$PDB : SPECIES  : $chain : $species" $dir/$headerFile`;
+                    `grep "^$PDB : SPECIES  : $chain : $species" $logDir/$headerFile`;
                 push (@Matches, $matchedAbOrAg);
             }
  
@@ -634,61 +600,36 @@ sub getTwoSpecies
         {
             my ($speciesAb, $speciesAg, $AbchainsFile, $AgchainsFile) = @_;
             
-            my @resultSAb = `grep SPECIES $dir/$headerFile | grep "$speciesAb"`;
+            my @resultSAb = `grep SPECIES $logDir/$headerFile | grep "$speciesAb"`;
             
-
-#            print "AG SPE: $speciesAg";
-
- #           exit;
              
             my @Matches;
             
             foreach  my $org (@resultSAb) {
                 my $PDB = substr ($org, 0, 4);
                 
-                my @AbChains = split (":",`grep $PDB $dir/$AbchainsFile`);
-                my @AgChains = split (":",`grep $PDB $dir/$AgchainsFile`);
+                my @AbChains = split (":",`grep $PDB $logDir/$AbchainsFile`);
+                my @AgChains = split (":",`grep $PDB $logDir/$AgchainsFile`);
                 next if (!@AgChains);
                 
                 
                 my @ABchains = split (/\,|""/,$AbChains[1] );
                 my @AGchains = split (/\,|""/,$AgChains[1] );
-                #print "$PDB:  AB: @ABchains";
-                #print "AG: @AGchains";
-#                exit;               
                  
                 my @twoSpeciesRes;
                 my (@ABSpecies, @AGSpecies);
-     #print "SIZE::", scalar @ABchains ;           
+
                 for (my $i = 0; $i< scalar @ABchains; $i++ )
                     {
-#                        print "HI";
-                        
-                        #my $twoSpecies =
-                         #   `grep -E 'SPECIES  : $ABchains[$i] : $speciesAb.*SPECIES  : $AGchains[$i] : $speciesAg' $dir/$headerProFile`;
-                        @ABSpecies = `grep "^$PDB : SPECIES  : $ABchains[$i] : $speciesAb" $dir/$headerFile`;
-                        @AGSpecies = `grep "^$PDB : SPECIES  : $AGchains[$i] : $speciesAg" $dir/$headerFile`;
 
-                        #print " $PDB: AB SPEC:", $ABSpecies;
-                        #print "$PDB: AG SPEC:", $AGSpecies;
-                        
+                        @ABSpecies = `grep "^$PDB : SPECIES  : $ABchains[$i] : $speciesAb" $logDir/$headerFile`;
+                        @AGSpecies = `grep "^$PDB : SPECIES  : $AGchains[$i] : $speciesAg" $logDir/$headerFile`;
+
                         if ( ( @ABSpecies) and (@AGSpecies) )  {
                             push (@Matches, $PDB);
                         }
-#| grep "SPECIES  : $AGchains[$i] : $speciesAg"`;
- #                print "SABA: $twoSpecies";
-  #                      exit;
-                        
-#                        push (@twoSpeciesRes, $twoSpecies);
+
                     }
-   #             print "TESTTTT: @twoSpeciesRes";
-    #            exit;
-                 
-#                foreach my $res ( @twoSpeciesRes) {
- #                   chomp $res;
-  #                  my $PDB = substr ($org, 0, 4);
-   #                 push (@Matches, $PDB);
-    #            }
                 
             }
 

@@ -432,8 +432,8 @@ sub get_pdb_path
 
     if($pdb_id=~m/[0-9A-Z]{4}/)
     {
-#	my $dir = '/acrm/data/pdb/';
-        my $dir = '/acrm/nouf2data1/acrm8/data/pdb/';
+	my $dir = '/acrm/data/pdb/';
+#        my $dir = '/acrm/nouf2data1/acrm8/data/pdb/';
 	my $ext = '.ent';
 	my $temp = 'pdb';
 	$file_path = $dir.$temp.lc($pdb_id).$ext;
@@ -508,8 +508,6 @@ sub getNumberedFileArray
     {
 	my @files = get_multiple_matching_files_from_directory
 	    ( $argPair->[0], $argPair->[1] );
-       # my @sorted_files = sort { substr ($a, 5 )<=> substr ($b, 5) } @files ;
-        
 	push(@filesArray, \@files);
     }
 
@@ -517,15 +515,11 @@ sub getNumberedFileArray
     my (@kabat_files, @chothia_files, @martin_files);
 
     push (@kabat_files, @{$filesArray[0]});
-    # To sort alpha-numerically
-    #my @Sorted_kabat_files = sort { substr ($a, 5 )<=> substr ($b, 5) } @kabat_files;
-   # print "TEST::: @Sorted_kabat_files";    
+   
     push (@chothia_files,@{$filesArray[1]});
-    #my @Sorted_chothia_files = sort { substr ($a, 5 )<=> substr ($b, 5) } @chothia_files;
-    
+       
     push (@martin_files, @{$filesArray[2]});
-    #my @Sorted_martin_files = sort { substr ($a, 5 )<=> substr ($b, 5) } @martin_files;
-    #return (\@Sorted_kabat_files, \@Sorted_chothia_files, \@Sorted_martin_files);   
+   
     return (\@kabat_files, \@chothia_files, \@martin_files);
     
 }

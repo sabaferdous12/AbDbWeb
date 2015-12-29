@@ -46,23 +46,23 @@ my (@kabat_clus, @chothia_clus, @martin_clus);
 open(my $CLUSTER_K,'<',
      "$dir/Redundant_files/Redundant_ALL_Kabat.txt");
 opendir (my $DIR_K, "$dir/ALL_Kabat") or die
-    "Can not open $dir/Combined_Kabat";
+    "Can not open $dir/ALL_Kabat";
 my @dir_files_k = readdir ($DIR_K);
 
 # Reading Chothia data
 open(my $CLUSTER_C,
      '<', "$dir/Redundant_files/Redundant_ALL_Chothia.txt");
 opendir (my $DIR_C, "$dir/ALL_Chothia") or die
-    "Can not open $dir/Combined_Chothia";
+    "Can not open $dir/ALL_Chothia";
 my @dir_files_c = readdir ($DIR_C);
 
 # Reading Martin data
 open(my $CLUSTER_M,'<',
      "$dir/Redundant_files/Redundant_ALL_Martin.txt");
 opendir (my $DIR_M, "$dir/ALL_Martin") or die
-    "Can not open $dir/CombinedAb_Martin";
+    "Can not open $dir/ALL_Martin";
 my @dir_files_m = readdir ($DIR_M);
-
+ 
 
 my ($pdb_id, $nameAg, $speciesAg);
 my ($nameAb, $speciesAb);
@@ -395,14 +395,13 @@ if ( ($nameAb) and ($speciesAg eq "") and ($pdb_id eq "") )
     exit; 
 }
 
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 if ( ( ($speciesAb) and ($speciesAg) and ($pdb_id eq "") ))
 {
     $pdb_id = 0;    
     print_html_header();       
 ####################    
-               
+
     my @PDBcodes = getTwoSpecies($speciesAb, $speciesAg, $antibodyChainsFile, $antigenChainsFile);
     
     my $PDBnumS;
@@ -599,23 +598,30 @@ sub getSpecies
 sub getTwoSpecies
         {
             my ($speciesAb, $speciesAg, $AbchainsFile, $AgchainsFile) = @_;
-            
+
+            # Grep all lines for searched species
             my @resultSAb = `grep SPECIES $logDir/$headerFile | grep "$speciesAb"`;
-            
-             
             my @Matches;
             
             foreach  my $org (@resultSAb) {
                 my $PDB = substr ($org, 0, 4);
-                
+                # Look for chain labels for species PDB
                 my @AbChains = split (":",`grep $PDB $logDir/$AbchainsFile`);
                 my @AgChains = split (":",`grep $PDB $logDir/$AgchainsFile`);
-                next if (!@AgChains);
-                
-                
+
+                # In case Ag has no chains, it will have space
+                # To remove space
+                if (  $AgChains[1] =~ m/\s+/) {
+                   $AgChains[1] =~ s/\s+$//;
+                 #   next;
+               }
+
+                next if (  !$AgChains[1]);
+                                
                 my @ABchains = split (/\,|""/,$AbChains[1] );
                 my @AGchains = split (/\,|""/,$AgChains[1] );
-                 
+
+                
                 my @twoSpeciesRes;
                 my (@ABSpecies, @AGSpecies);
 

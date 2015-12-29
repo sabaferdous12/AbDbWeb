@@ -324,25 +324,25 @@ sub check_complex
     my ($file_name) = @_;
     my $dir = "/acrm/www/html/abs/abdb/Data";
         
-    open(my $proAB,'<', "$dir/Redundant_files/Redundant_AntibodyAntigen_Kabat.txt")
+    open(my $proAB,'<', "$dir/Redundant_files/Redundant_LH_Protein_Martin.txt")
 	or die "Can not open file ...";
-    open (my $nproAB, '<', "$dir/Redundant_files/Redundant_AntibodyHapten_Kabat.txt")
+    open (my $nproAB, '<', "$dir/Redundant_files/Redundant_LH_NonProtein_Martin.txt")
         or die "Can not open file ...";
-    open (my $freeAB, '<', "$dir/Redundant_files/Redundant_FreeAntibody_Kabat.txt")
-        or die "Can not open file ...";
-        
-    open (my $proLG, '<', "$dir/Redundant_files/Redundant_LightAntigen_Kabat.txt" )
-        or die "Can not open file ...";
-    open (my $nproLG, '<', "$dir/Redundant_files/Redundant_LightHapten_Kabat.txt" )
-        or die "Can not open file ...";
-    open (my $freeLG, '<', "$dir/Redundant_files/Redundant_LightChain_Kabat.txt" )
+    open (my $freeAB, '<', "$dir/Redundant_files/Redundant_LH_Free_Martin.txt")
         or die "Can not open file ...";
         
-    open (my $proHV, '<', "$dir/Redundant_files/Redundant_HeavyAntigen_Kabat.txt" )
+    open (my $proLG, '<', "$dir/Redundant_files/Redundant_L_Protein_Martin.txt" )
         or die "Can not open file ...";
-    open (my $nproHV, '<', "$dir/Redundant_files/Redundant_HeavyHapten_Kabat.txt" )
+    open (my $nproLG, '<', "$dir/Redundant_files/Redundant_L_NonProtein_Martin.txt" )
         or die "Can not open file ...";
-    open (my $freeHV, '<', "$dir/Redundant_files/Redundant_HeavyChain_Kabat.txt")
+    open (my $freeLG, '<', "$dir/Redundant_files/Redundant_L_Free_Martin.txt" )
+        or die "Can not open file ...";
+        
+    open (my $proHV, '<', "$dir/Redundant_files/Redundant_H_Protein_Martin.txt" )
+        or die "Can not open file ...";
+    open (my $nproHV, '<', "$dir/Redundant_files/Redundant_H_NonProtein_Martin.txt" )
+        or die "Can not open file ...";
+    open (my $freeHV, '<', "$dir/Redundant_files/Redundant_H_Free_Martin.txt")
         or die "Can not open file ...";
     #print "UUUUUUUUU: $file_name\n";    
     

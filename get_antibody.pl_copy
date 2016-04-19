@@ -1,0 +1,110 @@
+#! /usr/bin/perl 
+use warnings;
+use strict;
+use CGI;
+
+use antibody qw (get_cluster_in_array);
+use antibody qw (get_multiple_matching_files_from_directory);
+use antibody qw (print_html_header);
+use antibody qw (print_error);
+use antibody qw (print_table);
+use antibody qw (print_single_antibody);
+use antibody qw (print_multiple_antibody);
+use antibody qw (print_two_similar_antibody);
+use antibody qw (print_two_different_antibody);
+use antibody qw (check_complex);
+my $cgi = new CGI;
+print $cgi->header();
+
+## Directory Data containing all the sub-directories for all the complexes numbered according
+## to diffreent numbering schemes 
+my $dir = "/acrm/www/html/abs/abdb/Data";
+
+
+#open(my $COMPLEX,'<', "$dir/Redundant_files/Redundant_Complex_Kabat.txt");
+
+my ($file1, $file2, $file3);
+my (@kabat_files, @chothia_files, @martin_files);
+my (@kabat_clus, @chothia_clus, @martin_clus);
+
+my $pdb_id = $cgi->param("pdbid");
+$pdb_id = uc($pdb_id);
+
+if (!$pdb_id){
+    print "Please enter valid PDB code for antibody<p>\n";
+    exit;
+}
+
+#my $status = check_complex($pdb_id, $COMPLEX);
+
+open(my $CLUSTER_K,'<', "$dir/Redundant_files/Redundant_Combined_Kabat.txt");
+@kabat_clus = get_cluster_in_array($pdb_id, $CLUSTER_K);
+opendir (my $DIR_K, "$dir/Combined_Kabat") or die "Can not open $dir/Combined_Kabat";
+my @dir_files_k = readdir ($DIR_K);                                                                               
+@kabat_files = get_multiple_matching_files_from_directory(\@dir_files_k, \@kabat_clus);   
+@kabat_files = sort @kabat_files;
+
+open(my $CLUSTER_C,'<', "$dir/Redundant_files/Redundant_Combined_Chothia.txt"); 
+@chothia_clus = get_cluster_in_array($pdb_id, $CLUSTER_C);
+opendir (my $DIR_C, "$dir/Combined_Chothia") or die "Can not open $dir/Combined_Chothia";
+my @dir_files_c = readdir ($DIR_C);
+@chothia_files = get_multiple_matching_files_from_directory(\@dir_files_c, \@chothia_clus);
+@chothia_files = sort @chothia_files;
+
+open(my $CLUSTER_M,'<', "$dir/Redundant_files/Redundant_Combined_Martin.txt");     
+
+@martin_clus = get_cluster_in_array($pdb_id, $CLUSTER_M);
+opendir (my $DIR_M, "$dir/Combined_Martin") or die "Can not open $dir/Combined_Martin";
+my @dir_files_m = readdir ($DIR_M);
+@martin_files = get_multiple_matching_files_from_directory(\@dir_files_m, \@martin_clus);
+@martin_files = sort @martin_files;
+my $array_size = scalar @kabat_files;
+
+my $less_one = $array_size-1;
+
+
+## Id PDB is not present in Database, it will print error on html 
+if (!$array_size)
+{
+    
+print_error($pdb_id); 
+  exit;
+}
+
+else{
+## If there is only one antibody in a PDB then it just prints this message   
+    if ($array_size == 1){
+	print_html_header();
+	print_table($array_size, $pdb_id, \@kabat_files, \@chothia_files, \@martin_files);
+	print_single_antibody($cgi, $pdb_id);
+    }
+    elsif ($array_size ==2){
+	
+	print_html_header();
+        print_table($array_size, $pdb_id, \@kabat_files, \@chothia_files, \@martin_files);
+
+	## If thre are 2 antibodies in a structure and there are redundant e.g: 1AFV_1 and 1AFV_2 
+	if ( (index($kabat_files[0], $pdb_id) != -1) and (index($kabat_files[1], $pdb_id) != -1)){
+	    print_two_similar_antibody($cgi, $pdb_id);
+	}
+	## If thre are 2 antibodies (different) for a PDB query and there are redundant e.g: 1AJ7_1, 2RCS_1
+	else{
+	    print_two_different_antibody($cgi, $pdb_id);
+	}
+    }
+
+
+    else{ # If there are more than 2 (or redundant antibodies) antibodies in one PDB 
+        print_html_header();
+        print_table($array_size, $pdb_id, \@kabat_files, \@chothia_files, \@martin_files);
+	print_multiple_antibody($cgi, $pdb_id, $less_one);
+
+    }
+
+    
+}
+
+
+
+
+

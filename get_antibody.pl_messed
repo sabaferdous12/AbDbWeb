@@ -25,18 +25,15 @@ use antibody qw
      get_resolution
      printTableKeyword
      displayMessage
-     displayMessageSpecOrg
-     displayAntigenError
-     displayMissingFilesError);
+     displayMessageSpecOrg);
 my $cgi = new CGI;
 print $cgi->header();
 
 ## Directory <Data> contains all the sub-directories for all the complexes
 # numbered according to diffrent numbering schemes 
 my $dir = "/acrm/www/html/abs/abdb/Data";
-my $logDir = "/acrm/www/html/abs/abdb/Data/Martin_logs";
 my $headerFile = "header.dat";
-my $headerProFile = "headerProcessed2.dat";
+my $headerProFile = "headerProcessed.dat";
 my $antigenChainsFile = "AntigenChains.dat";
 my $antibodyChainsFile = "AntibodyChains.dat";
 
@@ -46,25 +43,25 @@ my (@kabat_clus, @chothia_clus, @martin_clus);
 
 # Reading Kabat data
 open(my $CLUSTER_K,'<',
-     "$dir/Redundant_files/Redundant_ALL_Kabat.txt");
+     "$dir/Redundant_files/Redundant_CombinedAb_Kabat.txt");
 opendir (my $DIR_K, "$dir/ALL_Kabat") or die
     "Can not open $dir/ALL_Kabat";
 my @dir_files_k = readdir ($DIR_K);
 
 # Reading Chothia data
 open(my $CLUSTER_C,
-     '<', "$dir/Redundant_files/Redundant_ALL_Chothia.txt");
+     '<', "$dir/Redundant_files/Redundant_CombinedAb_Chothia.txt");
 opendir (my $DIR_C, "$dir/ALL_Chothia") or die
     "Can not open $dir/ALL_Chothia";
 my @dir_files_c = readdir ($DIR_C);
 
 # Reading Martin data
 open(my $CLUSTER_M,'<',
-     "$dir/Redundant_files/Redundant_ALL_Martin.txt");
+     "$dir/Redundant_files/Redundant__Martin.txt");
 opendir (my $DIR_M, "$dir/ALL_Martin") or die
     "Can not open $dir/ALL_Martin";
 my @dir_files_m = readdir ($DIR_M);
- 
+
 
 my ($pdb_id, $nameAg, $speciesAg);
 my ($nameAb, $speciesAb);
@@ -80,7 +77,6 @@ $speciesAg = uc($speciesAg);
 $speciesAb = $cgi->param("speciesAb");
 $speciesAb = uc($speciesAb);
 
-# Searcg for PDB code only
 if ( ($pdb_id) and ($nameAg eq "" ) and ($speciesAg eq "") )
 {
     $nameAg = 0;
@@ -91,13 +87,13 @@ if ( ($pdb_id) and ($nameAg eq "" ) and ($speciesAg eq "") )
 	@kabat_clus = get_cluster_in_array($pdb_id, $CLUSTER_K);
 	@chothia_clus = get_cluster_in_array($pdb_id, $CLUSTER_C);
 	@martin_clus = get_cluster_in_array($pdb_id, $CLUSTER_M);
-        
 
+        
         my $clusNum = @kabat_clus;
 	
 	if (!$clusNum)                                                         
 	{                                                                         
-	    open(my $KABAT_FAILED,'<', "$logDir/Kabat_Failed.list");
+	    open(my $KABAT_FAILED,'<', "$dir/Kabat_Failed.list");
 	    my @kabat_error = <$KABAT_FAILED>;
 	    
 	    if (grep (/$pdb_id/, @kabat_error) )
@@ -135,8 +131,8 @@ if ( ($pdb_id) and ($nameAg eq "" ) and ($speciesAg eq "") )
 		@kabat_files = @{$kabat_filesRef};
 		@chothia_files = @{$chothia_filesRef};
 		@martin_files = @{$martin_filesRef};
-                
-                my $cluster_size = @{$kabatClusterRef};	
+                 
+		my $cluster_size = @{$kabatClusterRef};	
 	
 		my $less_one = $cluster_size-1;   
 		
@@ -263,19 +259,7 @@ if ( ($pdb_id) and ($nameAg eq "" ) and ($speciesAg eq "") )
 		}
 		
 	    }
-            
-            # To check if some of the files are missing for some reason
-            if ( ( @kabat_files == @chothia_files) and ( @kabat_files == @martin_files)
-                                               and (@chothia_files == @martin_files) ) {
-            }
-            else 
-            {
-                displayMissingFilesError($cgi);
-            }
-
-        }
-        
-       
+	}
     
     }
     else
@@ -295,8 +279,6 @@ if ( ($nameAb) and ($nameAg) ) {
 }
 
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# Search by antigen name 
 if ( ($nameAg) and ($speciesAg eq "") and ($pdb_id eq "") )
 {
     $speciesAg = 0;
@@ -311,17 +293,17 @@ if ( ($nameAg) and ($speciesAg eq "") and ($pdb_id eq "") )
     else 
     {
 	print_html_header();
-	my @result = `grep -E MOLECULE $logDir/$headerFile | grep -E "$nameAg"`;
+	my @result = `grep -E MOLECULE $dir/$headerFile | grep -E "$nameAg"`;
         my @AgMatches;
         foreach  my $org (@result) {
             my $PDB = substr ($org, 0, 4);
-            my @AgChains = split (":",`grep $PDB $logDir/$antigenChainsFile`);
+            my @AgChains = split (":",`grep $PDB $dir/$antigenChainsFile`);
             my @chains = split (/\,|""/,$AgChains[1] );
                            
             foreach my $chain ( @chains) {
                 chomp $chain;
                 my $matchedAg =
-                    `grep "^$PDB : MOLECULE : $chain :.*$nameAg" $logDir/$headerFile`;
+                    `grep "^$PDB : MOLECULE : $chain :.*$nameAg" $dir/$headerFile`;
             push (@AgMatches, $matchedAg);    
             }
     
@@ -350,23 +332,11 @@ if ( ($nameAg) and ($speciesAg eq "") and ($pdb_id eq "") )
 	@martin_files = @{$martin_filesRef};
 
         printTableKeyword(\@kabat_files, \@chothia_files, \@martin_files);
-
-
-          # To check if some of the files are missing for some reason
-        if  ( ( @kabat_files == @chothia_files) and ( @kabat_files == @martin_files)
-                  and (@chothia_files == @martin_files) ) {
-        }
-        else {
-            displayMissingFilesError($cgi);
-        }
-        
     }
-    
     
     exit; 
 }
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Search by antibody name (keyword)
 if ( ($nameAb) and ($speciesAg eq "") and ($pdb_id eq "") )
 {
     $speciesAg = 0;
@@ -381,17 +351,17 @@ if ( ($nameAb) and ($speciesAg eq "") and ($pdb_id eq "") )
     else 
     {
 	print_html_header();
-	my @result = `grep -E MOLECULE $logDir/$headerFile | grep -E "$nameAb"`;
+	my @result = `grep -E MOLECULE $dir/$headerFile | grep -E "$nameAb"`;
         my @AbMatches;
         foreach  my $org (@result) {
             my $PDB = substr ($org, 0, 4);
-            my @AbChains = split (":",`grep $PDB $logDir/$antibodyChainsFile`);
+            my @AbChains = split (":",`grep $PDB $dir/$antibodyChainsFile`);
             my @chains = split (/\,|""/,$AbChains[1] );
                            
             foreach my $chain ( @chains) {
                 chomp $chain;
                 my $matchedAb =
-                    `grep "^$PDB : MOLECULE : $chain :.*$nameAb" $logDir/$headerFile`;
+                    `grep "^$PDB : MOLECULE : $chain :.*$nameAb" $dir/$headerFile`;
             push (@AbMatches, $matchedAb);    
             }
     
@@ -420,74 +390,36 @@ if ( ($nameAb) and ($speciesAg eq "") and ($pdb_id eq "") )
 	@martin_files = @{$martin_filesRef};
 
         printTableKeyword(\@kabat_files, \@chothia_files, \@martin_files);
-
-
-        # To check if some of the files are missing for some reason
-        if  ( ( @kabat_files == @chothia_files) and ( @kabat_files == @martin_files)
-                  and (@chothia_files == @martin_files) ) {
-        }
-        else {
-            displayMissingFilesError($cgi);
-        }
- 
-       
     }
     
     exit; 
 }
 
-#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Search for antibody and antigen species
-if ( ( ($speciesAb) and ($speciesAg) and ($pdb_id eq "") ))
-{
-    $pdb_id = 0;    
-    print_html_header();       
-####################    
-
-    my @PDBcodes = getTwoSpecies($speciesAb, $speciesAg, $antibodyChainsFile, $antigenChainsFile);
-    
-    my $PDBnumS;
-
-    my @args = ( [\@dir_files_k, \@PDBcodes],
-		 [\@dir_files_c, \@PDBcodes],
-		 [\@dir_files_m, \@PDBcodes]
-	);
-
-    my ($kabat_filesRef, $chothia_filesRef, $martin_filesRef) =
-	getNumberedFileArray (@args);
-    $PDBnumS = scalar @{$kabat_filesRef};
-    displayMessageSpecOrg ($cgi, $PDBnumS, $speciesAb, $speciesAg);
-    if ( !$PDBnumS ) {
-        exit;
-    }
-# De-referening                                                                                           
-    @kabat_files = @{$kabat_filesRef};
-    @chothia_files = @{$chothia_filesRef};
-    @martin_files = @{$martin_filesRef};
-    
-    printTableKeyword(\@kabat_files, \@chothia_files, \@martin_files);
-    displayAntigenError($cgi);
-
-    # To check if some of the files are missing for some reason
-    if  ( ( @kabat_files == @chothia_files) and ( @kabat_files == @martin_files)
-              and (@chothia_files == @martin_files) ) {
-    }
-    else {
-        displayMissingFilesError($cgi);
-    }
-    exit;     
-}
-
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Search for antigen species only
+
 if ( ($speciesAg) and ($nameAg eq "") and ($pdb_id eq "") )
 {
     $nameAg = 0;
     $pdb_id = 0;    
     print_html_header();       
     
-    my @PDBcodesS = getSpecies($speciesAg, $antigenChainsFile);
-    
+    my @resultS = `grep SPECIES $dir/$headerFile | grep "$speciesAg"`;
+    my @AgMatches;
+    foreach  my $org (@resultS) {
+        my $PDB = substr ($org, 0, 4);
+               
+        my @AgChains = split (":",`grep $PDB $dir/$antigenChainsFile`);
+        my @chains = split (/\,|""/,$AgChains[1] );
+                
+        foreach my $chain ( @chains) {
+            chomp $chain;
+            my $matchedAg =
+                `grep "^$PDB : SPECIES  : $chain : $speciesAg" $dir/$headerFile`;
+            push (@AgMatches, $matchedAg);
+        }
+ 
+    }
+    my @PDBcodesS = uniq (map {substr ($_, 0, 4)} @AgMatches);
     my $PDBnumS;
    
     my @args = ( [\@dir_files_k, \@PDBcodesS],
@@ -507,30 +439,33 @@ if ( ($speciesAg) and ($nameAg eq "") and ($pdb_id eq "") )
     @chothia_files = @{$chothia_filesRef};
     @martin_files = @{$martin_filesRef};
     
-    printTableKeyword(\@kabat_files, \@chothia_files, \@martin_files);
-    displayAntigenError($cgi);
-
-    # To check if some of the files are missing for some reason
-    if  ( ( @kabat_files == @chothia_files) and ( @kabat_files == @martin_files)
-              and (@chothia_files == @martin_files) ) {
-    }
-    else {
-        displayMissingFilesError($cgi);
-    }
-
-    
+    printTableKeyword(\@kabat_files, \@chothia_files, \@martin_files); 
     exit;     
 }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-# Search for antibody species 
 if ( ($speciesAb) and ($nameAg eq "") and ($pdb_id eq "") )
 {
     $nameAg = 0;
     $pdb_id = 0;    
     print_html_header();       
     
-    my @PDBcodesS = getSpecies ($speciesAb, $antibodyChainsFile);
-    
+    my @resultS = `grep SPECIES $dir/$headerFile | grep "$speciesAb"`;
+    my @AbMatches;
+    foreach  my $org (@resultS) {
+        my $PDB = substr ($org, 0, 4);
+               
+        my @AbChains = split (":",`grep $PDB $dir/$antibodyChainsFile`);
+        my @chains = split (/\,|""/,$AbChains[1] );
+                
+        foreach my $chain ( @chains) {
+            chomp $chain;
+            my $matchedAb =
+                `grep "^$PDB : SPECIES  : $chain : $speciesAb" $dir/$headerFile`;
+            push (@AbMatches, $matchedAb);
+        }
+ 
+    }
+    my @PDBcodesS = uniq (map {substr ($_, 0, 4)} @AbMatches);
     my $PDBnumS;
    
     my @args = ( [\@dir_files_k, \@PDBcodesS],
@@ -551,20 +486,11 @@ if ( ($speciesAb) and ($nameAg eq "") and ($pdb_id eq "") )
     @martin_files = @{$martin_filesRef};
     
     printTableKeyword(\@kabat_files, \@chothia_files, \@martin_files); 
-
-    # To check if some of the files are missing for some reason
-    if  ( ( @kabat_files == @chothia_files) and ( @kabat_files == @martin_files)
-              and (@chothia_files == @martin_files) ) {
-    }
-    else {
-        displayMissingFilesError($cgi);
-    }
-
     exit;     
 }
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-# This is non-functional piece of code.. and needs to be removed
+     
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 if ( ( ($speciesAg) or ($speciesAb)) and ( ($nameAg) or ($nameAb) ) and ($pdb_id eq ""))
     {
         my $isNumAg = looks_like_number($nameAg);
@@ -580,19 +506,19 @@ if ( ( ($speciesAg) or ($speciesAb)) and ( ($nameAg) or ($nameAb) ) and ($pdb_id
            my @result;
            if ($nameAg) {
                if ( $speciesAg) {
-                   @result = `grep -E "$nameAg" $logDir/$headerProFile | grep -E "$speciesAg"`;
+                   @result = `grep -E "$nameAg" $dir/$headerProFile | grep -E "$speciesAg"`;
                }
                else {
-                   @result = `grep -E "$nameAg" $logDir/$headerProFile | grep -E "$speciesAb"`;
+                   @result = `grep -E "$nameAg" $dir/$headerProFile | grep -E "$speciesAb"`;
                }
                
            }
            elsif ($nameAb) {
                if ( $speciesAg) {
-                   @result = `grep -E "$nameAb" $logDir/$headerProFile | grep -E "$speciesAg"`;
+                   @result = `grep -E "$nameAb" $dir/$headerProFile | grep -E "$speciesAg"`;
                }
                else {
-                   @result = `grep -E "$nameAb" $logDir/$headerProFile | grep -E "$speciesAb"`;
+                   @result = `grep -E "$nameAb" $dir/$headerProFile | grep -E "$speciesAb"`;
                }
                
            } 
@@ -623,7 +549,6 @@ if ( ( ($speciesAg) or ($speciesAb)) and ( ($nameAg) or ($nameAb) ) and ($pdb_id
         
     }
 
-    
 if (( $pdb_id) and (($nameAg) or ($speciesAg)) )
     {
         my $errorStr = "Please search by either PDB code or Keyword";
@@ -637,81 +562,3 @@ else
         displayError ($errorStr, $errorStr2);
     }
 
-sub getSpecies
-    {
-        my ($species, $chainsFile) = @_;
-        
-        my @resultS = `grep SPECIES $logDir/$headerFile | grep "$species"`;
-        my @Matches;
-        
-        foreach  my $org (@resultS) {
-            my $PDB = substr ($org, 0, 4);
-            
-            my @AbOrAgChains = split (":",`grep $PDB $logDir/$chainsFile`);
-            my @chains = split (/\,|""/,$AbOrAgChains[1] );
-                
-            foreach my $chain ( @chains) {
-                chomp $chain;
-                my $matchedAbOrAg =
-                    `grep "^$PDB : SPECIES  : $chain : $species" $logDir/$headerFile`;
-                push (@Matches, $matchedAbOrAg);
-            }
- 
-        }
-        my @PDBcodesS = uniq (map {substr ($_, 0, 4)} @Matches);
-
-        return @PDBcodesS;
-        
-    }
-    
-sub getTwoSpecies
-        {
-            my ($speciesAb, $speciesAg, $AbchainsFile, $AgchainsFile) = @_;
-
-            # Grep all lines for searched species
-            my @resultSAb = `grep SPECIES $logDir/$headerFile | grep "$speciesAb"`;
-            my @Matches;
-            
-            foreach  my $org (@resultSAb) {
-                my $PDB = substr ($org, 0, 4);
-                # Look for chain labels for species PDB
-                my @AbChains = split (":",`grep $PDB $logDir/$AbchainsFile`);
-                my @AgChains = split (":",`grep $PDB $logDir/$AgchainsFile`);
-
-                # In case Ag has no chains, it will have space
-                # To remove space
-                if (  $AgChains[1] =~ m/\s+/) {
-                   $AgChains[1] =~ s/\s+$//;
-                 #   next;
-               }
-
-                next if (  !$AgChains[1]);
-                                
-                my @ABchains = split (/\,|""/,$AbChains[1] );
-                my @AGchains = split (/\,|""/,$AgChains[1] );
-
-                
-                my @twoSpeciesRes;
-                my (@ABSpecies, @AGSpecies);
-
-                for (my $i = 0; $i< scalar @ABchains; $i++ )
-                    {
-
-                        @ABSpecies = `grep "^$PDB : SPECIES  : $ABchains[$i] : $speciesAb" $logDir/$headerFile`;
-                        @AGSpecies = `grep "^$PDB : SPECIES  : $AGchains[$i] : $speciesAg" $logDir/$headerFile`;
-
-                        if ( ( @ABSpecies) and (@AGSpecies) )  {
-                            push (@Matches, $PDB);
-                        }
-
-                    }
-                
-            }
-
-            
-            my @PDBcodesS = uniq (map {substr ($_, 0, 4)} @Matches);
-            
-            return @PDBcodesS;
-            
-        }
-        

@@ -28,7 +28,9 @@ displayError
 getNumberedFileArray
 printTableKeyword
 displayMessage
-displayMessageSpecOrg);
+displayMessageSpecOrg
+displayAntigenError
+displayMissingFilesError);
 
 ## Reads the Redundant cluster into an array as a separate element
 sub get_cluster_in_array
@@ -129,9 +131,8 @@ print <<__EOF;
 <p>The PDB <b>$pdb_id</b> in not found in our database. 
 This may be due to one of the following reasons:\
 <ul>
-<li>The PDB file only contains free or complexed single antibody chains 
-(e.g. light, heavy, light-antigen or heavy-antigen)</li>
-<li>This might not be a valid PDB code for antibody structure</li>  
+<li>This might not be a valid PDB code for antibody structure.</li>  
+<li>The PDB <b>$pdb_id</b> might have failed to process.</li>
 </ul>
 </p>
 </body>
@@ -563,12 +564,12 @@ sub displayMessage
             if ( !$PDBnum) {
                 print $cgi->p("There is no PDB structure found in this database for <b>$keyword</b>. This may be due to one of the following reasons:");
                 print $cgi->ul(
-                    $cgi->li("The PDB files for <b>$keyword</b> only contain free or complexed single antibody chains (e.g. light, heavy, light-antigen or heavy-antigen) that are not present in processed data"), $cgi->li("The structures for <b>$keyword</b> might not exists"));
+                    $cgi->li("The structures for <b>$keyword</b> might not exists."), $cgi->li("The PDB files for <b>$keyword</b> might not have processed.") );
                 exit;     
             }
 
             else {
-                print $cgi->p("There are $PDBnum PDB structures found in this database for <b>$keyword</b>");
+                print $cgi->p("There are $PDBnum PDB structures found in this database for <b>$keyword</b>.");
             }
             
             
@@ -582,20 +583,35 @@ sub displayMessageSpecOrg
                 $species =~  s/([^\s\w]*)(\S+)/$1\u\L$2/g;
                  
                 if  ( !$PDBnum) {
-                    print $cgi->p("There is no PDB structure found in this database for antigen <b>$organism</b> in species <b>$species</b>. This may be due to one of the following reasons:");
+                    print $cgi->p("There is no PDB structure found in this database for antibody species <b>$organism</b> bound with antigen species <b>$species</b>. This may be due to one of the following reasons:");
                     print $cgi->ul(
-                    $cgi->li("The PDB files for <b>$organism</b> only contain free or complexed single antibody chains (e.g. light, heavy, light-antigen or heavy-antigen) that are not present in processed data"), $cgi->li("The structures for <b>$organism</b> might not exists"));
+                    $cgi->li("The structures for <b>$organism</b> or <b>$species</b> might not exists."), $cgi->li("The PDB files for <b>$organism</b> or  <b>$species</b> might not have processed."));
                     
                 }
                 else {
                     
-                    print $cgi->p("There are $PDBnum PDB structures found in this database for antigen <b>$organism</b> in species <b>$species</b>");
+                    print $cgi->p("There are $PDBnum PDB structures found in this database for antibody species <b>$organism</b> bound with antigen species <b>$species</b>.");
                     
                 }
                 
             }
             
-        
+
+sub displayAntigenError
+{
+    my ($cgi) = @_;
+    print $cgi->p("<b>Note: </b>Any free antibodies appearing in the search results are due to non-antigen proteins bound to antibody (other than CDR regions). Such proteins have been removed from antibody during processing of original PDB file.");
+    
+}
+
+
+sub displayMissingFilesError
+{
+    my ($cgi) = @_;
+    print $cgi->p("<b>Note: </b>The missing files in following table are due to failure of one of the numbering method.");
+    
+}
+    
 1;
 
 

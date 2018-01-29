@@ -414,7 +414,7 @@ if ( ($nameAb) and ($speciesAg eq "") and ($pdb_id eq "") )
             exit;
 
         }
-        # De-referening                                                                                                          
+        # De-referening                                                                                                         
 	@kabat_files = @{$kabat_filesRef};
 	@chothia_files = @{$chothia_filesRef};
 	@martin_files = @{$martin_filesRef};
@@ -565,6 +565,7 @@ if ( ($speciesAb) and ($nameAg eq "") and ($pdb_id eq "") )
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 # This is non-functional piece of code.. and needs to be removed
+=pod
 if ( ( ($speciesAg) or ($speciesAb)) and ( ($nameAg) or ($nameAb) ) and ($pdb_id eq ""))
     {
         my $isNumAg = looks_like_number($nameAg);
@@ -622,6 +623,7 @@ if ( ( ($speciesAg) or ($speciesAb)) and ( ($nameAg) or ($nameAb) ) and ($pdb_id
        }
         
     }
+=cut
 
     
 if (( $pdb_id) and (($nameAg) or ($speciesAg)) )

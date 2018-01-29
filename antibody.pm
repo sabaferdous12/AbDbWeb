@@ -166,11 +166,13 @@ sub print_table
     {
         $pdb_file = substr(${$kabat_files}[$i], 0, 4);
 	        
-	$antibody_status = check_complex($pdb_file);
+	#$antibody_status = check_complex($pdb_file);
 	$resolution = get_resolution($pdb_file);
                
 	if (index(${$kabat_files}[$i], $pdb_id) != -1)
 	{ 
+$antibody_status = check_complex(${$kabat_files}[$i]);
+
 ## To print the Query PDB as BOLD in results table
 	    
 	    print "<tr>\n
@@ -189,6 +191,7 @@ $pdb_bold++;
 	}
 else
 { ## For printing rest of redundant antibodies in PDB
+$antibody_status = check_complex(${$kabat_files}[$i]);
     print "<tr>\n
  <td><a href=http://www.bioinf.org.uk/abs/abdb/Data/ALL_Kabat/${$kabat_files}[$i]>${$kabat_files}[$i]</a></td>
  <td><a href=http://www.bioinf.org.uk/abs/abdb/Data/ALL_Chothia/${$chothia_files}[$i]>${$chothia_files}[$i]</a></td>
@@ -322,7 +325,11 @@ sub print_two_different_antibody
 
 sub check_complex
 {
-    my ($file_name) = @_;
+    my ($file_name1) = @_;
+# chop .pdb 
+my @file_name2 = split (/\./, $file_name1);
+my $file_name = $file_name2[0];
+
     my $dir = "/acrm/www/html/abs/abdb/Data";
         
     open(my $proAB,'<', "$dir/Redundant_files/Redundant_LH_Protein_Martin.txt")

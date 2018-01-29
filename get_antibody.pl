@@ -566,63 +566,6 @@ if ( ($speciesAb) and ($nameAg eq "") and ($pdb_id eq "") )
 
 # This is non-functional piece of code.. and needs to be removed
 =pod
-if ( ( ($speciesAg) or ($speciesAb)) and ( ($nameAg) or ($nameAb) ) and ($pdb_id eq ""))
-    {
-        my $isNumAg = looks_like_number($nameAg);
-        my $isNumAb = looks_like_number($nameAb);
-        if ( ($isNumAg) or ($isNumAb) )
-            {
-                my $errorStr = "The name keyword should be a string\n";
-                displayError($errorStr, "" );
-                exit;
-            }
-        else {
-           print_html_header();
-           my @result;
-           if ($nameAg) {
-               if ( $speciesAg) {
-                   @result = `grep -E "$nameAg" $logDir/$headerProFile | grep -E "$speciesAg"`;
-               }
-               else {
-                   @result = `grep -E "$nameAg" $logDir/$headerProFile | grep -E "$speciesAb"`;
-               }
-               
-           }
-           elsif ($nameAb) {
-               if ( $speciesAg) {
-                   @result = `grep -E "$nameAb" $logDir/$headerProFile | grep -E "$speciesAg"`;
-               }
-               else {
-                   @result = `grep -E "$nameAb" $logDir/$headerProFile | grep -E "$speciesAb"`;
-               }
-               
-           } 
-           
-           my @PDBcodes = uniq (map {substr ($_, 0, 4)} @result);
-           my $PDBnum;
-
-           my @args = ( [\@dir_files_k, \@PDBcodes],
-                        [\@dir_files_c, \@PDBcodes],
-                        [\@dir_files_m, \@PDBcodes]
-                    );
-           my ($kabat_filesRef, $chothia_filesRef, $martin_filesRef) =
-               getNumberedFileArray (@args);
-           $PDBnum = scalar @{$kabat_filesRef};
-           displayMessageSpecOrg ($cgi, $PDBnum, $nameAg, $speciesAg);
-           if ( !$PDBnum) {
-                       exit;
-
-                   }
-                    # De-referening
-                @kabat_files = @{$kabat_filesRef};
-                @chothia_files = @{$chothia_filesRef};
-                @martin_files = @{$martin_filesRef};
-           
-           printTableKeyword(\@kabat_files, \@chothia_files, \@martin_files);
-           exit;
-       }
-        
-    }
 =cut
 
     
